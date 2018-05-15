@@ -8,5 +8,5 @@ import java.util.List;
 public interface MessageService {
 
     List<MessageDto> findByFromUserAndToUser(UserDto fromUserDto, UserDto toUserDto);
-
+    boolean create(UserDto fromUserDto, UserDto toUserDto, String message);
 }

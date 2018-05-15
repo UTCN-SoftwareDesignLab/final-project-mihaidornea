@@ -6,8 +6,10 @@ import server.dto.MessageDto;
 import server.dto.UserDto;
 import server.mapper.Mapper;
 import server.mapper.MessageMapper;
+import server.mapper.UserMapper;
 import server.model.Message;
 import server.model.User;
+import server.model.builder.MessageBuilder;
 import server.repository.MessageRepository;
 import server.repository.UserRepository;
 
@@ -19,12 +21,14 @@ public class MessageServiceImpl implements MessageService{
 
     private MessageRepository messageRepository;
     private UserRepository userRepository;
-    private Mapper mapper;
+    private Mapper messageMapper;
+    private Mapper userMapper;
     @Autowired
     public MessageServiceImpl(MessageRepository messageRepository, UserRepository userRepository) {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
-        this.mapper = new MessageMapper();
+        this.messageMapper = new MessageMapper();
+        this.userMapper = new UserMapper();
     }
 
     @Override
@@ -34,8 +38,21 @@ public class MessageServiceImpl implements MessageService{
         List<Message> messages = messageRepository.findByFromUserAndToUser(fromUser, toUser);
         List<MessageDto> messageDtoList = new ArrayList<>();
         for(Message message : messages){
-            messageDtoList.add((MessageDto)mapper.mapFrom(message));
+            messageDtoList.add((MessageDto)messageMapper.mapFrom(message));
         }
         return messageDtoList;
+    }
+
+    @Override
+    public boolean create(UserDto fromUserDto, UserDto toUserDto, String message) {
+        User fromUser = (User)userMapper.mapTo(fromUserDto);
+        User toUser = (User)userMapper.mapTo(toUserDto);
+        Message message1 = new MessageBuilder()
+                .setFromUser(fromUser)
+                .setToUser(toUser)
+                .setContent(message)
+                .build();
+        messageRepository.save(message1);
+        return true;
     }
 }

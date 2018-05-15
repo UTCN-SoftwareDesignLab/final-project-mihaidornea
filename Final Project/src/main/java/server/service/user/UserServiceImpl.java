@@ -6,6 +6,7 @@ import server.dto.UserDto;
 import server.mapper.Mapper;
 import server.mapper.UserMapper;
 import server.model.User;
+import server.model.builder.UserBuilder;
 import server.repository.UserRepository;
 
 import java.util.ArrayList;
@@ -34,7 +35,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findByUsername(String username) {
-        return (UserDto)mapper.mapFrom(userRepository.findByUsername(username));
+        User user = userRepository.findByUsername(username);
+        if (user!=null)
+            return (UserDto)mapper.mapFrom(user);
+        else
+            return null;
     }
 
     @Override
