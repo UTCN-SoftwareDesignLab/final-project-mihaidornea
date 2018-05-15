@@ -10,6 +10,16 @@ $(function() {
             '</tr>');
     }
 
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
     function setConnected(connected) {
         $("#connect").prop("disabled", connected);
         $("#disconnect").prop("disabled", !connected);
@@ -30,10 +40,20 @@ $(function() {
     $(document).ready(function() {
         client = Stomp.over(new SockJS('/chat'));
         client.connect({}, function (frame) {
+            var username = getParameterByName("username");
+            var latitude = getParameterByName("latitude");
+            var longitude = getParameterByName("longitude");
             setConnected(true);
-            client.subscribe('/broker/messages', function (message) {
+            client.subscribe('/broker/' + username, function (message) {
                 showMessage(JSON.parse(message.body));
             });
+            client.send("/app/update/" + username, {}, JSON.stringify({
+                'content':{
+                    'username' : username,
+                    'latitude' : latitude,
+                    'longitude' : longitude
+                }
+            }))
         });
     });
 
@@ -43,16 +63,5 @@ $(function() {
             setConnected(false);
         }
         client = null;
-    });
-
-    $('#send').click(function() {
-        var topic = "Update";
-        client.send("/app/chat/" + topic, {}, JSON.stringify({
-            'content': $("#username").val() + "/" + $('#latitude').val() + "/" + $('#longitude').val()
-        }));
-        $('#username').val("");
-        $('#longitude').val("");
-        $('#latitude').val("");
-
     });
 });

@@ -45,8 +45,10 @@ public class MessageServiceImpl implements MessageService{
 
     @Override
     public boolean create(UserDto fromUserDto, UserDto toUserDto, String message) {
-        User fromUser = (User)userMapper.mapTo(fromUserDto);
-        User toUser = (User)userMapper.mapTo(toUserDto);
+        User fromUser = userRepository.findByUsername(fromUserDto.getUsername());
+        User toUser = userRepository.findByUsername(toUserDto.getUsername());
+        System.out.println(fromUser.getId()  + " " + toUser.getId());
+
         Message message1 = new MessageBuilder()
                 .setFromUser(fromUser)
                 .setToUser(toUser)

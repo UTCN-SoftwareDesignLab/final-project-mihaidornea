@@ -41,10 +41,18 @@ $(function() {
         client = Stomp.over(new SockJS('/chat'));
         client.connect({}, function (frame) {
             setConnected(true);
-            var username = getParameterByName("username");
-            client.subscribe('/broker/' + username, function (message) {
+            var fromUsername = getParameterByName("fromUser");
+            var toUsername = getParameterByName("toUser")
+            var message = getParameterByName("message")
+            client.subscribe('/broker/' + fromUsername, function (message) {
                 showMessage(JSON.parse(message.body));
             });
+            client.send("/app/im/" + toUsername, {}, JSON.stringify({
+               'content' : {
+                   'username' : fromUsername,
+                   'message' : message
+               }
+            }));
         });
     });
 
@@ -54,13 +62,5 @@ $(function() {
             setConnected(false);
         }
         client = null;
-    });
-
-    $('#send').click(function() {
-        var username = $("#username").val();
-        console.log(username);
-        client.send("/app/im/" + username, {}, JSON.stringify({
-            'content': $('#message').val() + "/" + username
-        }));
     });
 });

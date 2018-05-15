@@ -2,20 +2,20 @@ package server.messages;
 
 public class GeneralMessage {
 
-    private String content;
+    private Content content;
 
     public GeneralMessage() {
     }
 
-    public GeneralMessage(String content) {
+    public GeneralMessage(Content content) {
         this.content = content;
     }
 
-    public String getContent() {
+    public Content getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(Content content) {
         this.content = content;
     }
 }

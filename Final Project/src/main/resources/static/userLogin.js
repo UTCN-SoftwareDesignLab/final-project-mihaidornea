@@ -47,7 +47,7 @@ $(function() {
                 showMessage(JSON.parse(message.body));
             });
             client.send("/app/login/" + username, {}, JSON.stringify({
-                'content' : { username  + "/" + password
+                'content' : { 'username': username,  'password': password}
             }));
         });
     });

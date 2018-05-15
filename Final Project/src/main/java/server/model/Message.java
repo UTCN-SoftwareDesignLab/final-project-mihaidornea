@@ -12,11 +12,11 @@ public class Message {
 
     private String content;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "from_user_id", referencedColumnName = "id")
     private User fromUser;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "to_user_id", referencedColumnName = "id")
     private User toUser;
 
