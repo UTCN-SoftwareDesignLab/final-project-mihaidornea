@@ -9,13 +9,18 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import server.dto.MessageDto;
 import server.dto.UserDto;
 import server.dto.builder.UserDtoBuilder;
 import server.messages.Content;
 import server.messages.GeneralMessage;
+import server.messages.IMessage;
 import server.messages.ServerResponseMessage;
 import server.service.message.MessageService;
 import server.service.user.UserService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class GeneralController {
@@ -114,7 +119,7 @@ public class GeneralController {
 
     @MessageMapping("/update/{username}")
     @SendTo("/broker/{username}")
-    private ServerResponseMessage update(@DestinationVariable String username, Message<GeneralMessage> message){
+    public ServerResponseMessage update(@DestinationVariable String username, Message<GeneralMessage> message){
         Content content = message.getPayload().getContent();
         UserDto userDto = userService.findByUsername(content.getUsername());
         if (userDto != null) {
@@ -122,6 +127,35 @@ public class GeneralController {
                 return new ServerResponseMessage("Update Successfully!");
             else return new ServerResponseMessage("Failed to Update!");
         } else return new ServerResponseMessage("Invalid username!");
+    }
+
+    @MessageMapping("/getIM/{username}")
+    @SendTo("/broker/{username}")
+    public ServerResponseMessage getMessages(@DestinationVariable String username, Message<GeneralMessage> message){
+        Content content = message.getPayload().getContent();
+        UserDto toUserDto = userService.findByUsername(content.getUsername());
+        UserDto fromUserDto = userService.findByUsername(username);
+        List<MessageDto> messages = messageService.findByFromUserAndToUser(fromUserDto, toUserDto);
+        ArrayList<IMessage> iMessages = new ArrayList<>();
+        for (MessageDto messageDto : messages){
+            iMessages.add(new IMessage(messageDto.getFromUserDto().getUsername(), messageDto.getToUserDot().getUsername(), messageDto.getContent()));
+        }
+        return new ServerResponseMessage("Got'em!", iMessages);
+    }
+
+    @MessageMapping("/getUsers/{username}")
+    @SendTo("/broker/{username}")
+    public ServerResponseMessage getUsers(@DestinationVariable String username, Message<GeneralMessage> message){
+        UserDto userDto = userService.findByUsername(username);
+        double latitude = userDto.getLatitude();
+        double longitude = userDto.getLongitude();
+        List<UserDto> users = userService.findByLatitudeBetweenAndLongitudeBetween(latitude - 0.05,
+                                                                        latitude + 0.05,
+                                                                        longitude - 0.05,
+                                                                        longitude + 0.05);
+        ServerResponseMessage serverResponseMessage = new ServerResponseMessage();
+        serverResponseMessage.setUsers((ArrayList<UserDto>)users);
+        return serverResponseMessage;
     }
 
 
@@ -153,6 +187,17 @@ public class GeneralController {
                               @RequestParam ("message") String message,
                               @RequestParam ("toUser") String toUsername){
         return "/sendMessage";
+    }
+
+    @GetMapping("/getMessages")
+    public String getMessages(@RequestParam ("fromUser") String fromUsername,
+                              @RequestParam ("toUser") String toUsername){
+        return "/getMessages";
+    }
+
+    @GetMapping("/getUsers")
+    public String getUsers(@RequestParam ("username") String username){
+        return "/getUsers";
     }
 
 }
