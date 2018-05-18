@@ -29,7 +29,7 @@ import static com.examples.scs.finalprojectclient.Constants.PORT;
  * Created by mihaidornea on 5/16/2018.
  */
 
-public class SocketActivity extends AppCompatActivity{
+public class LoginActivity extends AppCompatActivity{
 
     private StompClient client;
     private EditText usernameEditText;
@@ -61,7 +61,11 @@ public class SocketActivity extends AppCompatActivity{
                     try {
                         JSONObject jsonObject = new JSONObject(message.getPayload());
                         String status = jsonObject.get("status").toString();
-                                textView.setText(status);
+                        textView.setText(status);
+                        if (status.equals("Access Granted!")){
+                            Intent intent = new Intent(getApplicationContext(), UserSelectionActivity.class).putExtra("StringName", username);
+                            startActivity(intent);
+                        }
                     } catch (JSONException e){
                         e.printStackTrace();
                     }

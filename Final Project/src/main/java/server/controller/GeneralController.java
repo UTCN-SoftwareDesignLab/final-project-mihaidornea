@@ -88,6 +88,8 @@ public class GeneralController {
             String fromUser = content.getUsername();
             UserDto fromUserDto = userService.findByUsername(fromUser);
             UserDto toUserDto = userService.findByUsername(username);
+            System.out.println(fromUserDto.getUsername());
+            System.out.println(toUserDto.getUsername());
             messageService.create(fromUserDto, toUserDto, content.getMessage());
         } catch (ArrayIndexOutOfBoundsException e){
             e.printStackTrace();

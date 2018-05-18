@@ -24,6 +24,7 @@ public class ChatArrayAdapter extends ArrayAdapter<ChatMessage>{
     public void add(ChatMessage object){
         chatMessageList.add(object);
         super.add(object);
+        super.notifyDataSetChanged();
     }
 
     public ChatArrayAdapter(Context context, int textViewResourceId){
