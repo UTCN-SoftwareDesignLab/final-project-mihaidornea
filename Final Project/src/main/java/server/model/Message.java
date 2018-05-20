@@ -2,6 +2,7 @@ package server.model;
 
 import org.springframework.context.annotation.Primary;
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 public class Message {
@@ -12,6 +13,8 @@ public class Message {
 
     private String content;
 
+    private Date date;
+
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "from_user_id", referencedColumnName = "id")
     private User fromUser;
@@ -19,6 +22,14 @@ public class Message {
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "to_user_id", referencedColumnName = "id")
     private User toUser;
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     public Long getId() {
         return id;

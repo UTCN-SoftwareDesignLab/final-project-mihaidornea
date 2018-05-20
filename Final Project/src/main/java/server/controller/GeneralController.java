@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import server.dto.MessageDto;
 import server.dto.UserDto;
 import server.dto.builder.UserDtoBuilder;
+import server.dto.validation.UserValidator;
 import server.messages.Content;
 import server.messages.GeneralMessage;
 import server.messages.IMessage;
@@ -20,6 +21,8 @@ import server.service.message.MessageService;
 import server.service.user.UserService;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -110,9 +113,14 @@ public class GeneralController {
                     .setLatitude(content.getLatitude())
                     .setLongitude(content.getLongitude())
                     .build();
-            if (userService.create(userDto))
-                return new ServerResponseMessage("User Successfully Created!");
-            else return new ServerResponseMessage("Error when creating the user!");
+            UserValidator userValidator = new UserValidator(userDto);
+            if (userValidator.validate()){
+                if (userService.create(userDto))
+                    return new ServerResponseMessage("User Successfully Created!");
+                else return new ServerResponseMessage("Error when creating the user!");
+            } else {
+                return new ServerResponseMessage(userValidator.getErrors().get(0));
+            }
         } catch (ArrayIndexOutOfBoundsException e){
             e.printStackTrace();
         }
@@ -120,7 +128,7 @@ public class GeneralController {
     }
 
     @MessageMapping("/update/{username}")
-    @SendTo("/broker/{username}")
+    //@SendTo("/broker/{username}")
     public ServerResponseMessage update(@DestinationVariable String username, Message<GeneralMessage> message){
         Content content = message.getPayload().getContent();
         UserDto userDto = userService.findByUsername(content.getUsername());
@@ -138,6 +146,14 @@ public class GeneralController {
         UserDto toUserDto = userService.findByUsername(content.getUsername());
         UserDto fromUserDto = userService.findByUsername(username);
         List<MessageDto> messages = messageService.findByFromUserAndToUser(fromUserDto, toUserDto);
+        List<MessageDto> messages2 = messageService.findByFromUserAndToUser(toUserDto, fromUserDto);
+        messages.addAll(messages2);
+        Collections.sort(messages, new Comparator<MessageDto>() {
+            @Override
+            public int compare(MessageDto o1, MessageDto o2) {
+                return o1.getDate().compareTo(o2.getDate());
+            }
+        });
         ArrayList<IMessage> iMessages = new ArrayList<>();
         for (MessageDto messageDto : messages){
             iMessages.add(new IMessage(messageDto.getFromUserDto().getUsername(), messageDto.getToUserDot().getUsername(), messageDto.getContent()));

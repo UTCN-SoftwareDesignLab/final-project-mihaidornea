@@ -1,10 +1,21 @@
 package server.dto;
 
+import java.util.Date;
+
 public class MessageDto {
 
     private String content;
     private UserDto fromUserDto;
     private UserDto toUserDot;
+    private Date date;
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     public String getContent() {
         return content;

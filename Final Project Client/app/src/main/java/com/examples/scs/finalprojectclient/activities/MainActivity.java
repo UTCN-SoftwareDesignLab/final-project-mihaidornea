@@ -1,6 +1,5 @@
-package com.examples.scs.finalprojectclient;
+package com.examples.scs.finalprojectclient.activities;
 
-import android.content.Intent;
 import android.database.DataSetObserver;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,17 +11,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 
+import com.examples.scs.finalprojectclient.utilities.arrayAdapters.ChatArrayAdapter;
+import com.examples.scs.finalprojectclient.messages.ChatMessage;
+import com.examples.scs.finalprojectclient.messages.Content;
+import com.examples.scs.finalprojectclient.messages.GeneralMessage;
+import com.examples.scs.finalprojectclient.R;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import ua.naiksoftware.stomp.Stomp;
 import ua.naiksoftware.stomp.client.StompClient;
 
-import static com.examples.scs.finalprojectclient.Constants.IP_ADDRESS;
-import static com.examples.scs.finalprojectclient.Constants.PORT;
+import static com.examples.scs.finalprojectclient.utilities.Constants.IP_ADDRESS;
+import static com.examples.scs.finalprojectclient.utilities.Constants.PORT;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,8 +48,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         username = getIntent().getStringExtra("StringUsername");
         toUsername = getIntent().getStringExtra("StringToUsername");
-        buttonSend = (Button) findViewById(R.id.send);
-        listView = (ListView) findViewById(R.id.msgview);
+
+
+        buttonSend = findViewById(R.id.send);
+        listView = findViewById(R.id.msgview);
         chatArrayAdapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right);
 
         client = Stomp.over(Stomp.ConnectionProvider.JWS, "http://" + IP_ADDRESS + PORT + "/chat/websocket");
@@ -54,11 +61,38 @@ public class MainActivity extends AppCompatActivity {
             try {
                 JSONObject jsonObject = new JSONObject(message.getPayload());
                 String status = jsonObject.get("status").toString();
-                chatArrayAdapter.add(new ChatMessage(side, status));
+                try {
+                    JSONArray messageArray = jsonObject.getJSONArray("messages");
+                    if (messageArray != null) {
+                        for (int i = 0; i < messageArray.length(); i++) {
+                            JSONObject im = (JSONObject) messageArray.get(i);
+                            if (im != null) {
+                                runOnUiThread(() -> {
+                                    try {
+                                        boolean right = true;
+                                        if (im.getString("fromUsername").equals(username)) {
+                                            right = true;
+                                            chatArrayAdapter.add(new ChatMessage(right, im.getString("message")));
+                                        } else if (im.getString("toUsername").equals(username)) {
+                                            right = false;
+                                            chatArrayAdapter.add(new ChatMessage(right, im.getString("message")));
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } catch (JSONException e){
+                    e.printStackTrace();
+                }
+                runOnUiThread(() -> chatArrayAdapter.add(new ChatMessage(side, status)));
             } catch (JSONException e){
                 e.printStackTrace();
             }
         });
+        getMessages();
 
 
         listView.setAdapter(chatArrayAdapter);
@@ -88,9 +122,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void getMessages(){
+        String contentJson = "";
+        try {
+            GeneralMessage generalMessage = new GeneralMessage();
+            Content content = new Content();
+            content.setUsername(toUsername);
+            generalMessage.setContent(content);
+            ObjectMapper mapper = new ObjectMapper();
+            contentJson = mapper.writeValueAsString(generalMessage);
+        }catch (JsonProcessingException e){
+            e.printStackTrace();
+        }
+        client.send("/app/getIM/" + username, contentJson).subscribe(
+                ()-> Log.d(TAG, "Message sent!"),
+                error -> Log.d(TAG, "An error ocurred at sending the message!", error)
+        );
+    }
+
     private boolean sendChatMessage() {
         String contentJson = "";
-        chatArrayAdapter.add(new ChatMessage(!side, chatText.getText().toString()));
+        runOnUiThread(() -> chatArrayAdapter.add(new ChatMessage(!side, chatText.getText().toString())));
         try {
             GeneralMessage generalMessage = new GeneralMessage();
             Content content = new Content();
@@ -103,8 +156,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         client.send("/app/im/" + toUsername, contentJson).subscribe(
-                ()-> Log.d("APLICATION", "Someshit worked"),
-                error -> Log.d("APPLICATION", "Some shit error ocurred", error)
+                ()-> Log.d(TAG, "Message sent!"),
+                error -> Log.d(TAG, "An error ocurred!", error)
         );
         chatText.setText("");
         return true;

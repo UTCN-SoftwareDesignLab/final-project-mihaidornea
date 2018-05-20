@@ -1,4 +1,4 @@
-package com.examples.scs.finalprojectclient;
+package com.examples.scs.finalprojectclient.utilities;
 
 public class UserDto {
     private String username;
@@ -57,4 +57,6 @@ public class UserDto {
     public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
+
+
 }

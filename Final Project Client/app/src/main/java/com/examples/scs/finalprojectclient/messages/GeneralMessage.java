@@ -1,4 +1,4 @@
-package com.examples.scs.finalprojectclient;
+package com.examples.scs.finalprojectclient.messages;
 
 public class GeneralMessage {
 

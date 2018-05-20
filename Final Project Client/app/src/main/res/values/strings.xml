@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">FinalProjectClient</string>
     <string name="title_activity_login">Sign in</string>
-
+    <string name="google_Maps_Api_Key"> AIzaSyCEoHNe88q6a2xUEKC29y98KmetsauIhq0 </string>
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password (optional)</string>

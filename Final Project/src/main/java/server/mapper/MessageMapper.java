@@ -15,6 +15,7 @@ public class MessageMapper implements Mapper<Message, MessageDto> {
     public Message mapTo(MessageDto messageDto) {
         return new MessageBuilder()
                 .setContent(messageDto.getContent())
+                .setDate(messageDto.getDate())
                 .setFromUser((User)userMapper.mapTo(messageDto.getFromUserDto()))
                 .setToUser((User)userMapper.mapTo(messageDto.getFromUserDto()))
                 .build();
@@ -23,6 +24,7 @@ public class MessageMapper implements Mapper<Message, MessageDto> {
     @Override
     public MessageDto mapFrom(Message message) {
         return new MessageDtoBuilder()
+                .setDate(message.getDate())
                 .setContent(message.getContent())
                 .setFromUserDto((UserDto)userMapper.mapFrom(message.getFromUser()))
                 .setToUserDto((UserDto)userMapper.mapFrom(message.getToUser()))

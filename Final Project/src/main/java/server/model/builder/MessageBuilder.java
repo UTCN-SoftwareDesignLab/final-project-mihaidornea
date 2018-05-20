@@ -3,6 +3,8 @@ package server.model.builder;
 import server.model.Message;
 import server.model.User;
 
+import java.util.Date;
+
 public class MessageBuilder {
 
     private Message message;
@@ -13,6 +15,11 @@ public class MessageBuilder {
 
     public MessageBuilder setContent(String content){
         message.setContent(content);
+        return this;
+    }
+
+    public MessageBuilder setDate(Date date) {
+        message.setDate(date);
         return this;
     }
 

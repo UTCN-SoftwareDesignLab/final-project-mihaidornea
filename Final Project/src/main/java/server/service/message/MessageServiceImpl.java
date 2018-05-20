@@ -14,6 +14,7 @@ import server.repository.MessageRepository;
 import server.repository.UserRepository;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -53,8 +54,10 @@ public class MessageServiceImpl implements MessageService{
                 .setFromUser(fromUser)
                 .setToUser(toUser)
                 .setContent(message)
+                .setDate(new Date())
                 .build();
         messageRepository.save(message1);
         return true;
     }
+
 }

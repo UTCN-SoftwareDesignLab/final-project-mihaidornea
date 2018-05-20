@@ -3,6 +3,8 @@ package server.dto.builder;
 import server.dto.MessageDto;
 import server.dto.UserDto;
 
+import java.util.Date;
+
 public class MessageDtoBuilder {
 
     private MessageDto messageDto;
@@ -13,6 +15,11 @@ public class MessageDtoBuilder {
 
     public MessageDtoBuilder setContent(String content){
         messageDto.setContent(content);
+        return this;
+    }
+
+    public MessageDtoBuilder setDate(Date date){
+        messageDto.setDate(date);
         return this;
     }
 

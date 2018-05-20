@@ -1,4 +1,4 @@
-package com.examples.scs.finalprojectclient;
+package com.examples.scs.finalprojectclient.utilities;
 
 /**
  * Created by mihaidornea on 5/16/2018.
