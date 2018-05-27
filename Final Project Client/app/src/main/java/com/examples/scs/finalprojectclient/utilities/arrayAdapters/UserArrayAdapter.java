@@ -11,6 +11,7 @@ import android.widget.Button;
 
 import com.examples.scs.finalprojectclient.R;
 import com.examples.scs.finalprojectclient.activities.MainActivity;
+import com.examples.scs.finalprojectclient.activities.UserSelectionActivity;
 import com.examples.scs.finalprojectclient.utilities.UserDto;
 
 import java.util.ArrayList;
@@ -83,6 +84,7 @@ public class UserArrayAdapter extends ArrayAdapter<UserDto>{
             Intent intent = new Intent(context, MainActivity.class);
             intent.putExtra("StringUsername", username);
             intent.putExtra("StringToUsername", userDto.getUsername());
+            ((UserSelectionActivity) context).stopThread();
             context.startActivity(intent);
         });
         return row;

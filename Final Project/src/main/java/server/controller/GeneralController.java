@@ -6,6 +6,9 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.ChannelInterceptorAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,36 +44,16 @@ public class GeneralController {
         this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
-    @MessageMapping("/chat/{topic}")
-    @SendTo("/broker/messages")
-    public ServerResponseMessage process(@DestinationVariable String topic, Message<GeneralMessage> message) throws Exception {
-        /*String response = "";
-        switch (topic){
-            case "Register":
-                response = register(message.getPayload().getContent());
-                break;
-            case "Update":
-                response = update(message.getPayload().getContent());
-                break;
-            case "Send":
-                response = message.getPayload().getContent();
-            default:
-                break;
-        }
-        return new ServerResponseMessage(response);
-        */
-        return new ServerResponseMessage("NOT YET");
-    }
-
     @MessageMapping("/login/{username}")
-    @SendTo("/broker/{username}")
+    @SendTo("/login/{username}")
     public ServerResponseMessage login(@DestinationVariable String username, Message<GeneralMessage> message1) throws Exception{
         Content content = message1.getPayload().getContent();
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         try {
             UserDto userDto = userService.findByUsername(content.getUsername());
             if (userDto == null) {
                 return new ServerResponseMessage("Incorrect username!");
-            } else if (!userDto.getPassword().equals(content.getPassword())){
+            } else if (!encoder.matches(content.getPassword(),userDto.getPassword())){
                 return new ServerResponseMessage("Incorrect Password!");
             } else {
                 return new ServerResponseMessage("Access Granted!");
@@ -101,7 +84,7 @@ public class GeneralController {
     }
 
     @MessageMapping("/register/{username}")
-    @SendTo("/broker/{username}")
+    @SendTo("/register/{username}")
     public ServerResponseMessage register(@DestinationVariable String username, Message<GeneralMessage> message) throws Exception{
         Content content = message.getPayload().getContent();
         try{
@@ -147,8 +130,16 @@ public class GeneralController {
         UserDto fromUserDto = userService.findByUsername(username);
         List<MessageDto> messages = messageService.findByFromUserAndToUser(fromUserDto, toUserDto);
         List<MessageDto> messages2 = messageService.findByFromUserAndToUser(toUserDto, fromUserDto);
-        messages.addAll(messages2);
-        Collections.sort(messages, new Comparator<MessageDto>() {
+        List<MessageDto> finalMessages = new ArrayList<>();
+        if (messages.isEmpty()){
+            finalMessages.addAll(messages2);
+        } else if (messages2.isEmpty()){
+            finalMessages.addAll(messages);
+        }else {
+            finalMessages.addAll(messages);
+            finalMessages.addAll(messages2);
+        }
+        Collections.sort(finalMessages, new Comparator<MessageDto>() {
             @Override
             public int compare(MessageDto o1, MessageDto o2) {
                 return o1.getDate().compareTo(o2.getDate());
@@ -158,11 +149,11 @@ public class GeneralController {
         for (MessageDto messageDto : messages){
             iMessages.add(new IMessage(messageDto.getFromUserDto().getUsername(), messageDto.getToUserDot().getUsername(), messageDto.getContent()));
         }
-        return new ServerResponseMessage("Got'em!", iMessages);
+        return new ServerResponseMessage(iMessages);
     }
 
     @MessageMapping("/getUsers/{username}")
-    @SendTo("/broker/{username}")
+    @SendTo("/users/{username}")
     public ServerResponseMessage getUsers(@DestinationVariable String username, Message<GeneralMessage> message){
         UserDto userDto = userService.findByUsername(username);
         double latitude = userDto.getLatitude();

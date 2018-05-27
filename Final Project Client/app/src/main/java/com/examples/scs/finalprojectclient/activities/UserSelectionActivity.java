@@ -1,5 +1,6 @@
 package com.examples.scs.finalprojectclient.activities;
 
+import android.content.SharedPreferences;
 import android.database.DataSetObserver;
 import android.location.Location;
 import android.support.annotation.NonNull;
@@ -30,8 +31,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ua.naiksoftware.stomp.Stomp;
+import ua.naiksoftware.stomp.StompHeader;
 import ua.naiksoftware.stomp.client.StompClient;
 
 public class UserSelectionActivity extends AppCompatActivity {
@@ -50,17 +53,16 @@ public class UserSelectionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_selection);
-        username = getIntent().getStringExtra("StringName");
-        client = Stomp.over(Stomp.ConnectionProvider.JWS, "http://" + Constants.IP_ADDRESS + Constants.PORT + "/chat/websocket");
-        client.connect();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        client = ((ChatingApplication) getApplication()).getClient();
         if (client.isConnected()) {
             init();
-            client.topic("/broker/" + username).subscribe(message -> {
+            SharedPreferences prefs = getSharedPreferences("", MODE_PRIVATE);
+            username = prefs.getString("username", null);
+            String password = prefs.getString("password", null);
+            List<StompHeader> stompHeaders = new ArrayList<>();
+            stompHeaders.add(new StompHeader("USERNAME_HEADER", username));
+            stompHeaders.add(new StompHeader("PASSWORD_HEADER", password));
+            client.topic("/users/" + username, stompHeaders).subscribe(message -> {
                 try {
                     JSONObject jsonObject = new JSONObject(message.getPayload());
                     JSONArray userArray = jsonObject.getJSONArray("users");
@@ -145,11 +147,7 @@ public class UserSelectionActivity extends AppCompatActivity {
                 ()-> Log.d(TAG, "Message sent!"),
                 error -> Log.d(TAG, "An error ocurred at sending the message!", error)
         );
-
-
     }
-
-
 
     private void addUsers() {
         for (UserDto userDto : userDtos) {
@@ -221,7 +219,10 @@ public class UserSelectionActivity extends AppCompatActivity {
     protected void onPause() {
         thread.interrupt();
         super.onPause();
+    }
 
+    public void stopThread(){
+        this.thread.interrupt();
     }
 }
 

@@ -18,7 +18,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ua.naiksoftware.stomp.Stomp;
+import ua.naiksoftware.stomp.StompHeader;
 import ua.naiksoftware.stomp.client.StompClient;
 
 import static com.examples.scs.finalprojectclient.utilities.Constants.IP_ADDRESS;
@@ -48,13 +52,7 @@ public class RegistrationActivity extends AppCompatActivity {
         lastNameEditText = findViewById(R.id.registrationLastName);
         registrationButton = findViewById(R.id.registerAccountButton);
 
-        client = Stomp.over(Stomp.ConnectionProvider.JWS, "http://" + IP_ADDRESS + PORT + "/chat/websocket");
-        client.connect();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        StompClient client = ((ChatingApplication) getApplication()).getClient();
         if (client.isConnected()) {
             registrationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -63,7 +61,8 @@ public class RegistrationActivity extends AppCompatActivity {
                     String password = passwordEditText.getText().toString();
                     String firstName = firstNameEditText.getText().toString();
                     String lastName = lastNameEditText.getText().toString();
-                    client.topic("/broker/" + username).subscribe(message -> {
+                    List<StompHeader> stompHeaders = new ArrayList<>();
+                    client.topic("/register/" + username).subscribe(message -> {
                         try {
                             JSONObject jsonObject = new JSONObject(message.getPayload());
                             String status = jsonObject.get("status").toString();

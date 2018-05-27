@@ -1,5 +1,6 @@
 package com.examples.scs.finalprojectclient.activities;
 
+import android.content.SharedPreferences;
 import android.database.DataSetObserver;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -23,7 +24,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ua.naiksoftware.stomp.Stomp;
+import ua.naiksoftware.stomp.StompHeader;
 import ua.naiksoftware.stomp.client.StompClient;
 
 import static com.examples.scs.finalprojectclient.utilities.Constants.IP_ADDRESS;
@@ -54,10 +59,15 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.msgview);
         chatArrayAdapter = new ChatArrayAdapter(getApplicationContext(), R.layout.right);
 
-        client = Stomp.over(Stomp.ConnectionProvider.JWS, "http://" + IP_ADDRESS + PORT + "/chat/websocket");
-        client.connect();
+        client = ((ChatingApplication) getApplication()).getClient();
+        SharedPreferences prefs = getSharedPreferences("", MODE_PRIVATE);
+        username = prefs.getString("username", null);
+        String password = prefs.getString("password", null);
+        List<StompHeader> stompHeaders = new ArrayList<>();
+        stompHeaders.add(new StompHeader("USERNAME_HEADER", username));
+        stompHeaders.add(new StompHeader("PASSWORD_HEADER", password));
 
-        client.topic("/broker/" + username).subscribe(message -> {
+        client.topic("/broker/" + username, stompHeaders).subscribe(message -> {
             try {
                 JSONObject jsonObject = new JSONObject(message.getPayload());
                 String status = jsonObject.get("status").toString();
@@ -87,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (JSONException e){
                     e.printStackTrace();
                 }
-                runOnUiThread(() -> chatArrayAdapter.add(new ChatMessage(side, status)));
             } catch (JSONException e){
                 e.printStackTrace();
             }

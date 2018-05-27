@@ -1,6 +1,7 @@
 package server.service.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import server.dto.UserDto;
 import server.mapper.Mapper;
@@ -60,7 +61,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean create(UserDto userDto) {
-        userRepository.save((User)mapper.mapTo(userDto));
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        User user = (User)mapper.mapTo(userDto);
+        user.setPassword(encoder.encode(user.getPassword()));
+        userRepository.save(user);
         return true;
     }
 

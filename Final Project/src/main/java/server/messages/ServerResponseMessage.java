@@ -18,6 +18,10 @@ public class ServerResponseMessage {
         this.status = status;
     }
 
+    public ServerResponseMessage(ArrayList<IMessage> messages) {
+        this.messages = messages;
+    }
+
     public ServerResponseMessage(String status, ArrayList<IMessage> messages) {
         this.status = status;
         this.messages = messages;
